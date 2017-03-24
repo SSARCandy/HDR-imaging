@@ -1,0 +1,17 @@
+# Filename  exposure    1/shutter_speed f/stop gain(db) ND_filters
+memorial0061.png 32 0.03125 8 0 0
+memorial0062.png 16 0.0625  8 0 0
+memorial0063.png 8 0.125   8 0 0
+memorial0064.png 4 0.25    8 0 0
+memorial0065.png 2 0.5     8 0 0
+memorial0066.png 1 1       8 0 0
+memorial0067.png 0.5 2       8 0 0
+memorial0068.png 0.25 4       8 0 0
+memorial0069.png 0.125 8       8 0 0
+memorial0070.png 0.0625 16      8 0 0
+memorial0071.png 0.03125 32      8 0 0
+memorial0072.png 0.015625 64      8 0 0
+memorial0073.png 0.0078125 128     8 0 0
+memorial0074.png 0.00390625 256     8 0 0
+memorial0075.png 0.001953125 512     8 0 0
+memorial0076.png 0.0009765625 1024    8 0 0
