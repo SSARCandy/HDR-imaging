@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 import random
 import cProfile
+import constant
 
 
 def load_exposures(source_dir, channel=0):
@@ -33,7 +34,7 @@ def load_exposures(source_dir, channel=0):
 
 def hdr_debvec(img_list, exposure_times):
     B = [math.log(e,2) for e in exposure_times]
-    l = 50
+    l = constant.L
     w = [z if z <= 0.5*255 else 255-z for z in range(256)]
 
     small_img = [cv2.resize(img, (10, 10)) for img in img_list]
@@ -74,9 +75,6 @@ def response_curve_solver(Z, B, l, w):
         A[k][i+2] =    l*w[i+1]
         k += 1
 
-    print(np.shape(A))
-    print(np.shape(b))
-    
     # Solve the system using SVD
     x = np.linalg.lstsq(A, b)[0]
     g = x[:256]
