@@ -108,29 +108,19 @@ def construct_hdr(img_list, response_curve, exposure_times):
     img_size = img_list[0][0].shape
     w = [z if z <= 0.5*255 else 255-z for z in range(256)]
     ln_t = np.log2(exposure_times)
-    Zb = [img.flatten().tolist() for img in img_list[0]]
-    Zg = [img.flatten().tolist() for img in img_list[1]]
-    Zr = [img.flatten().tolist() for img in img_list[2]]
 
-    Eb = construct_radiance_map(response_curve[0], Zb, ln_t, w)
-    Eg = construct_radiance_map(response_curve[1], Zg, ln_t, w)
-    Er = construct_radiance_map(response_curve[2], Zr, ln_t, w)
-
-    # Exponational each channels and reshape to 2D-matrix
     vfunc = np.vectorize(lambda x:math.exp(x))
-    bE = np.reshape(vfunc(Eb), img_size)
-    gE = np.reshape(vfunc(Eg), img_size)
-    rE = np.reshape(vfunc(Er), img_size)
+    hdr = np.zeros((img_size[0], img_size[1], 3), 'float32')
 
-    # Merge RGB to one matrix
-    hdr = np.zeros((rE.shape[0], rE.shape[1], 3), 'float32')
-    hdr[..., 0] = bE
-    hdr[..., 1] = gE
-    hdr[..., 2] = rE
+    # construct radiance map for BGR channels
+    for i in range(3):
+        Z = [img.flatten().tolist() for img in img_list[i]]
+        E = construct_radiance_map(response_curve[i], Z, ln_t, w)
+        # Exponational each channels and reshape to 2D-matrix
+        hdr[..., i] = np.reshape(vfunc(E), img_size)
 
     return hdr
 
-# In[8]:
 
 # Code based on https://gist.github.com/edouardp/3089602
 def save_hdr(hdr, filename):
@@ -176,7 +166,7 @@ if __name__ == '__main__':
 
 
     # Show response curve
-    plt.figure(figsize=(10,10))
+    plt.figure(figsize=(10, 10))
     plt.plot(gr, range(256), 'r')
     plt.plot(gg, range(256), 'g')
     plt.plot(gb, range(256), 'b')
