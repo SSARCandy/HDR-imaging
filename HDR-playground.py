@@ -1,6 +1,7 @@
 # coding: utf-8
 
 import os
+import sys
 import cv2
 import math
 import numpy as np
@@ -100,7 +101,7 @@ def construct_radiance_map(g, Z, ln_t, w):
             z = Z[j][i]
             acc_E[i] += w[z]*(g[z] - ln_t[j])
             acc_w += w[z]
-        ln_E[i] = acc_E[i]/acc_w
+        ln_E[i] = acc_E[i]/acc_w if acc_w > 0 else acc_E[i]
         acc_w = 0
     
     return ln_E
@@ -108,7 +109,7 @@ def construct_radiance_map(g, Z, ln_t, w):
 
 # In[8]:
 
-# Code borrowed from https://gist.github.com/edouardp/3089602
+# Code based on https://gist.github.com/edouardp/3089602
 def save_hdr(hdr, filename):
     image = np.zeros((hdr.shape[0], hdr.shape[1], 3), 'float32')
     image[..., 0] = hdr[..., 2]
@@ -133,16 +134,18 @@ def save_hdr(hdr, filename):
     f.close()
 
 
-
-
-
-
-
 if __name__ == '__main__':
+    if len(sys.argv) != 3:
+        print('[Usage] python script <input img dir> <output .hdr name>')
+        print('[Exampe] python script taipei taipei.hdr')
+        sys.exit(0)
+ 
+    img_dir, output_hdr_filename = sys.argv[1], sys.argv[2]
+
     # Loading exposure images into a list
-    img_list_b, exposure_times = load_exposures('test', 0)
-    img_list_g, exposure_times = load_exposures('test', 1)
-    img_list_r, exposure_times = load_exposures('test', 2)
+    img_list_b, exposure_times = load_exposures(img_dir, 0)
+    img_list_g, exposure_times = load_exposures(img_dir, 1)
+    img_list_r, exposure_times = load_exposures(img_dir, 2)
 
     gb, _ = hdr_debvec(img_list_b, exposure_times)
     gg, _ = hdr_debvec(img_list_g, exposure_times)
@@ -194,4 +197,4 @@ if __name__ == '__main__':
     plt.colorbar()
     plt.show()
 
-    save_hdr(hdr, 'test.hdr')
+    save_hdr(hdr, output_hdr_filename)
