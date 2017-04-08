@@ -87,9 +87,6 @@ def response_curve_solver(Z, B, l, w):
 
 # In[5]:
 
-
-# In[7]:
-
 def construct_radiance_map(g, Z, ln_t, w):
     acc_E = [0]*len(Z[0])
     ln_E = [0]*len(Z[0])
@@ -106,6 +103,32 @@ def construct_radiance_map(g, Z, ln_t, w):
     
     return ln_E
 
+def construct_hdr(img_list, response_curve, exposure_times):
+    # Construct radiance map for each channels
+    img_size = img_list[0][0].shape
+    w = [z if z <= 0.5*255 else 255-z for z in range(256)]
+    ln_t = np.log2(exposure_times)
+    Zb = [img.flatten().tolist() for img in img_list[0]]
+    Zg = [img.flatten().tolist() for img in img_list[1]]
+    Zr = [img.flatten().tolist() for img in img_list[2]]
+
+    Eb = construct_radiance_map(response_curve[0], Zb, ln_t, w)
+    Eg = construct_radiance_map(response_curve[1], Zg, ln_t, w)
+    Er = construct_radiance_map(response_curve[2], Zr, ln_t, w)
+
+    # Exponational each channels and reshape to 2D-matrix
+    vfunc = np.vectorize(lambda x:math.exp(x))
+    bE = np.reshape(vfunc(Eb), img_size)
+    gE = np.reshape(vfunc(Eg), img_size)
+    rE = np.reshape(vfunc(Er), img_size)
+
+    # Merge RGB to one matrix
+    hdr = np.zeros((rE.shape[0], rE.shape[1], 3), 'float32')
+    hdr[..., 0] = bE
+    hdr[..., 1] = gE
+    hdr[..., 2] = rE
+
+    return hdr
 
 # In[8]:
 
@@ -154,46 +177,18 @@ if __name__ == '__main__':
 
     # Show response curve
     plt.figure(figsize=(10,10))
-    plt.plot(gr,range(256), 'r')
-    plt.plot(gg,range(256), 'g')
-    plt.plot(gb,range(256), 'b')
+    plt.plot(gr, range(256), 'r')
+    plt.plot(gg, range(256), 'g')
+    plt.plot(gb, range(256), 'b')
     plt.ylabel('pixel value Z')
     plt.xlabel('log exposure X')
     plt.show()
 
-
-    # Construct radiance map for each channels
-    img_size = img_list_b[0].shape
-    w = [z if z <= 0.5*255 else 255-z for z in range(256)]
-    Zb = [img.flatten().tolist() for img in img_list_b]
-    Zg = [img.flatten().tolist() for img in img_list_g]
-    Zr = [img.flatten().tolist() for img in img_list_r]
-
-    cProfile.run('Eb = construct_radiance_map(gb, Zb, exposure_times, w)')
-    cProfile.run('Eg = construct_radiance_map(gg, Zg, exposure_times, w)')
-    cProfile.run('Er = construct_radiance_map(gr, Zr, exposure_times, w)')
-
-    E = np.asarray([Eb, Eg, Er])
-
-    # Exponational each channels
-    vfunc = np.vectorize(lambda x:math.exp(x))
-    for i in range(3):
-        E[i] = vfunc(E[i])
-    
-    bE = np.reshape(E[0], img_size)
-    gE = np.reshape(E[1], img_size)
-    rE = np.reshape(E[2], img_size)
-
-    # Merge RGB to one matrix
-    hdr = np.zeros((rE.shape[0], rE.shape[1], 3), 'float32')
-    hdr[..., 0] = bE
-    hdr[..., 1] = gE
-    hdr[..., 2] = rE
+    hdr = construct_hdr([img_list_b, img_list_g, img_list_r], [gb, gg, gr], exposure_times)
 
     # Display Radiance map with pseudo-color image (log value)
-    uhdr = cv2.cvtColor(hdr, cv2.COLOR_BGR2GRAY)
     plt.figure(figsize=(12,8))
-    plt.imshow(np.log(uhdr))
+    plt.imshow(np.log2(cv2.cvtColor(hdr, cv2.COLOR_BGR2GRAY)))
     plt.colorbar()
     plt.show()
 
