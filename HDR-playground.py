@@ -30,7 +30,6 @@ def load_exposures(source_dir, channel=0):
     return (img_list, exposure_times)
 
 
-# In[3]:
 
 def hdr_debvec(img_list, exposure_times):
     B = [math.log(e,2) for e in exposure_times]
@@ -39,15 +38,11 @@ def hdr_debvec(img_list, exposure_times):
 
     small_img = [cv2.resize(img, (10, 10)) for img in img_list]
     Z = [img.flatten() for img in small_img]
-
-    
-    print(np.shape(Z))
     
     return response_curve_solver(Z, B, l, w)
 
 
-# In[4]:
-
+# Implementation of paper's Equation(3) with weight
 def response_curve_solver(Z, B, l, w):
     n = 256
     A = np.zeros(shape=(np.size(Z, 0)*np.size(Z, 1)+n+1, n+np.size(Z, 1)), dtype=np.float32)
@@ -85,6 +80,7 @@ def response_curve_solver(Z, B, l, w):
 
 # In[5]:
 
+# Implementation of paper's Equation(6)
 def construct_radiance_map(g, Z, ln_t, w):
     acc_E = [0]*len(Z[0])
     ln_E = [0]*len(Z[0])
@@ -112,14 +108,16 @@ def construct_hdr(img_list, response_curve, exposure_times):
 
     # construct radiance map for BGR channels
     for i in range(3):
+        print(' - Constructing radiance map for {0} channel .... '.format('BGR'[i]), end='', flush=True)
         Z = [img.flatten().tolist() for img in img_list[i]]
         E = construct_radiance_map(response_curve[i], Z, ln_t, w)
         # Exponational each channels and reshape to 2D-matrix
         hdr[..., i] = np.reshape(vfunc(E), img_size)
+        print('done')
 
     return hdr
 
-
+# Save HDR image as .hdr file format
 # Code based on https://gist.github.com/edouardp/3089602
 def save_hdr(hdr, filename):
     image = np.zeros((hdr.shape[0], hdr.shape[1], 3), 'float32')
@@ -145,6 +143,7 @@ def save_hdr(hdr, filename):
     f.close()
 
 
+# main
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print('[Usage] python script <input img dir> <output .hdr name>')
@@ -154,30 +153,43 @@ if __name__ == '__main__':
     img_dir, output_hdr_filename = sys.argv[1], sys.argv[2]
 
     # Loading exposure images into a list
+    print('Reading input images.... ', end='')
     img_list_b, exposure_times = load_exposures(img_dir, 0)
     img_list_g, exposure_times = load_exposures(img_dir, 1)
     img_list_r, exposure_times = load_exposures(img_dir, 2)
+    print('done')
 
+    # Solving response curves
+    print('Solving response curves .... ', end='')
     gb, _ = hdr_debvec(img_list_b, exposure_times)
     gg, _ = hdr_debvec(img_list_g, exposure_times)
     gr, _ = hdr_debvec(img_list_r, exposure_times)
+    print('done')
 
 
     # Show response curve
+    print('Saving response curves plot .... ', end='')
     plt.figure(figsize=(10, 10))
-    plt.plot(gr, range(256), 'r')
-    plt.plot(gg, range(256), 'g')
-    plt.plot(gb, range(256), 'b')
+    plt.plot(gr, range(256), 'rx')
+    plt.plot(gg, range(256), 'gx')
+    plt.plot(gb, range(256), 'bx')
     plt.ylabel('pixel value Z')
     plt.xlabel('log exposure X')
-    plt.show()
+    plt.savefig('response-curve.png')
+    print('done')
 
+    print('Constructing HDR image: ')
     hdr = construct_hdr([img_list_b, img_list_g, img_list_r], [gb, gg, gr], exposure_times)
+    print('done')
 
     # Display Radiance map with pseudo-color image (log value)
+    print('Saving pseudo-color radiance map .... ', end='')
     plt.figure(figsize=(12,8))
-    plt.imshow(np.log2(cv2.cvtColor(hdr, cv2.COLOR_BGR2GRAY)))
+    plt.imshow(np.log2(cv2.cvtColor(hdr, cv2.COLOR_BGR2GRAY)), cmap='jet')
     plt.colorbar()
-    plt.show()
+    plt.savefig('radiance-map.png')
+    print('done')
 
+    print('Saving HDR image .... ', end='')
     save_hdr(hdr, output_hdr_filename)
+    print('done')
