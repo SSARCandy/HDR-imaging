@@ -2,10 +2,10 @@
 DSC_0058.png 32        0.03125
 DSC_0059.png 16        0.0625
 DSC_0060.png  8        0.125
-#DSC_0061.png  4        0.25
-#DSC_0062.png  2        0.5
-#DSC_0063.png  1        1
-#DSC_0064.png  0.5      2
-#DSC_0065.png  0.25     4
-#DSC_0066.png  0.125    8
-#DSC_0067.png  0.0625  16
+DSC_0061.png  4        0.25
+DSC_0062.png  2        0.5
+DSC_0063.png  1        1
+DSC_0064.png  0.5      2
+DSC_0065.png  0.25     4
+DSC_0066.png  0.125    8
+DSC_0067.png  0.0625  16
