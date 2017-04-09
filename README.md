@@ -58,6 +58,17 @@ The program will output:
 
 for sample output, you can see [HDR-playground.ipynb](https://github.com/SSARCandy/HDR-imaging/blob/master/HDR-playground.ipynb) as reference.
 
+## Tonemap
+
+I use tmo for tonemapping, it implement 24 algorithms.  
+I write a script `tonemap.bat` for auto-run all 24 algorithms. 
+
+```bash
+$ tonemap.bat <filename without extension>
+```
+
+Make sure all `tm_*.exe` is in your system PATH
+
 ## Environment
 
 I test my code in Window10, but it should work fine in macOS/Linux(exclude tonemapping reference program need run in Windows)

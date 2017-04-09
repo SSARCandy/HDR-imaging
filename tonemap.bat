@@ -1,7 +1,7 @@
 :: A script that run all tone-mapping algorithm provide by tmo
 :: Make sure your tm_*.exe is in you system PATH
 :: ---
-:: Usage tonemap <filename without extension>
+:: [Usage] tonemap.bat <filename without extension>
 
 SET filename=%1
 
