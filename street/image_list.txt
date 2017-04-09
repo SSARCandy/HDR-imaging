@@ -1,0 +1,12 @@
+# Filename   exposure 1/shutter_speed
+DSC_0102.png  1               1
+DSC_0101.png  0.5             2
+DSC_0100.png  0.25            4
+DSC_0099.png  0.125           8
+DSC_0098.png  0.0625         16
+DSC_0097.png  0.03125        32
+DSC_0096.png  0.015625       64
+DSC_0095.png  0.0078125     128
+DSC_0094.png  0.00390625    256
+DSC_0093.png  0.001953125   512
+DSC_0092.png  0.0009765625 1024 
