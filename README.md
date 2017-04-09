@@ -20,6 +20,7 @@ $ python HDR-playground.py <input img dir> <output .hdr name>
 $ python ./HDR-playground.py taipei taipei.hdr
 ```
 
+I also provide an jupyter version(`HDR-playground.ipynb`), it’s function is same as `HDR-playground.py`. jupyter is really convenient for develop python program!
 
 ## Input format
 
@@ -51,6 +52,12 @@ DSC_0067.png  0.0625  16
 
 The program will output:
 
-- a `.hdr` image
-- a reconstruct RGB response curve plot
-- a pseudo-color radiance map(with log vaule)
+- A `.hdr` image
+- A reconstruct RGB response curve plot
+- A pseudo-color radiance map(with log value)
+
+for sample output, you can see [HDR-playground.ipynb](https://github.com/SSARCandy/HDR-imaging/blob/master/HDR-playground.ipynb) as reference.
+
+## Environment
+
+I test my code in Window10, but it should work fine in macOS/Linux(exclude tonemapping reference program need run in Windows)
