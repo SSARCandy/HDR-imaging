@@ -29,6 +29,46 @@ def load_exposures(source_dir, channel=0):
 
     return (img_list, exposure_times)
 
+# MTB implementation
+def median_threshold_bitmap_alignment(img_list):
+    median = [np.median(img) for img in img_list]
+    binary_thres_img = [cv2.threshold(img_list[i], median[i], 255, cv2.THRESH_BINARY)[1] for i in range(len(img_list))]
+    mask_img = [cv2.inRange(img_list[i], median[i]-20, median[i]+20) for i in range(len(img_list))]
+ 
+    plt.imshow(mask_img[0], cmap='gray')
+    plt.show()
+    
+    max_offset = np.max(img_list[0].shape)
+    levels = 5
+
+    global_offset = []
+    for i in range(0, len(img_list)):
+        offset = [[0,0]]
+        for level in range(levels, -1, -1):
+            scaled_img = cv2.resize(binary_thres_img[i], (0, 0), fx=1/(2**level), fy=1/(2**level))
+            ground_img = cv2.resize(binary_thres_img[0], (0, 0), fx=1/(2**level), fy=1/(2**level))
+            ground_mask = cv2.resize(mask_img[0], (0, 0), fx=1/(2**level), fy=1/(2**level))
+            mask = cv2.resize(mask_img[i], (0, 0), fx=1/(2**level), fy=1/(2**level))
+            
+            level_offset = [0, 0]
+            diff = float('Inf')
+            for y in [-1, 0, 1]:
+                for x in [-1, 0, 1]:
+                    off = [offset[-1][0]*2+y, offset[-1][1]*2+x]
+                    error = 0
+                    for row in range(ground_img.shape[0]):
+                        for col in range(ground_img.shape[1]):
+                            if off[1]+col < 0 or off[0]+row < 0 or off[1]+col >= ground_img.shape[1] or off[0]+row >= ground_img.shape[1]:
+                                continue
+                            if ground_mask[row][col] == 255:
+                                continue
+                            error += 1 if ground_img[row][col] != scaled_img[y+off[0]][x+off[1]] else 0
+                    if error < diff:
+                        level_offset = off
+                        diff = error
+            offset += [level_offset]
+        global_offset += [offset[-1]]
+    return global_offset
 
 
 def hdr_debvec(img_list, exposure_times):
@@ -193,3 +233,7 @@ if __name__ == '__main__':
     print('Saving HDR image .... ', end='')
     save_hdr(hdr, output_hdr_filename)
     print('done')
+
+
+
+
