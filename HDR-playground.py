@@ -71,13 +71,31 @@ def median_threshold_bitmap_alignment(img_list):
     return global_offset
 
 
-def hdr_debvec(img_list, exposure_times):
+def hdr_debvec(img_list, exposure_times, number_of_samples_per_dimension=20):
     B = [math.log(e,2) for e in exposure_times]
     l = constant.L
     w = [z if z <= 0.5*255 else 255-z for z in range(256)]
 
-    small_img = [cv2.resize(img, (10, 10)) for img in img_list]
-    Z = [img.flatten() for img in small_img]
+    samples = []
+    width = img_list[0].shape[0]
+    height = img_list[0].shape[1]
+    width_iteration = width / number_of_samples_per_dimension
+    height_iteration = height / number_of_samples_per_dimension
+
+    w_iter = 0
+    h_iter = 0
+
+    Z = np.zeros((len(img_list), number_of_samples_per_dimension*number_of_samples_per_dimension))
+    for img_index, img in enumerate(img_list):
+        h_iter = 0
+        for i in range(number_of_samples_per_dimension):
+            w_iter = 0
+            for j in range(number_of_samples_per_dimension):
+                if math.floor(w_iter) < width and math.floor(h_iter) < height:
+                    pixel = img[math.floor(w_iter), math.floor(h_iter)]
+                    Z[img_index, i*j] = pixel
+                w_iter += width_iteration
+            h_iter += height_iteration
     
     return response_curve_solver(Z, B, l, w)
 
@@ -92,7 +110,7 @@ def response_curve_solver(Z, B, l, w):
     k = 0
     for i in range(np.size(Z, 1)):
         for j in range(np.size(Z, 0)):
-            z = Z[j][i]
+            z = int(Z[j][i])
             wij = w[z]
             A[k][z] = wij
             A[k][n+i] = -wij
