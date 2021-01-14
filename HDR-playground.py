@@ -93,7 +93,7 @@ def hdr_debvec(img_list, exposure_times, number_of_samples_per_dimension=20):
             for j in range(number_of_samples_per_dimension):
                 if math.floor(w_iter) < width and math.floor(h_iter) < height:
                     pixel = img[math.floor(w_iter), math.floor(h_iter)]
-                    Z[img_index, i*j] = pixel
+                    Z[img_index, i * number_of_samples_per_dimension + j] = pixel
                 w_iter += width_iteration
             h_iter += height_iteration
     
