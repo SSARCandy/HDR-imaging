@@ -175,31 +175,10 @@ def construct_hdr(img_list, response_curve, exposure_times):
 
     return hdr
 
-# Save HDR image as .hdr file format
-# Code based on https://gist.github.com/edouardp/3089602
-def save_hdr(hdr, filename):
-    image = np.zeros((hdr.shape[0], hdr.shape[1], 3), 'float32')
-    image[..., 0] = hdr[..., 2]
-    image[..., 1] = hdr[..., 1]
-    image[..., 2] = hdr[..., 0]
-
-    f = open(filename, 'wb')
-    f.write(b"#?RADIANCE\n# Made with Python & Numpy\nFORMAT=32-bit_rle_rgbe\n\n")
-    header = '-Y {0} +X {1}\n'.format(image.shape[0], image.shape[1]) 
-    f.write(bytes(header, encoding='utf-8'))
-
-    brightest = np.maximum(np.maximum(image[...,0], image[...,1]), image[...,2])
-    mantissa = np.zeros_like(brightest)
-    exponent = np.zeros_like(brightest)
-    np.frexp(brightest, mantissa, exponent)
-    scaled_mantissa = mantissa * 256.0 / brightest
-    rgbe = np.zeros((image.shape[0], image.shape[1], 4), dtype=np.uint8)
-    rgbe[...,0:3] = np.around(image[...,0:3] * scaled_mantissa[...,None])
-    rgbe[...,3] = np.around(exponent + 128)
-
-    rgbe.flatten().tofile(f)
-    f.close()
-
+def hdr2ldr(hdr, filename):
+    tonemap = cv2.createTonemapDrago(5)
+    ldr = tonemap.process(hdr)
+    cv2.imwrite('{}.png'.format(filename), ldr * 255)
 
 # main
 if __name__ == '__main__':
@@ -249,9 +228,9 @@ if __name__ == '__main__':
     print('done')
 
     print('Saving HDR image .... ', end='')
-    save_hdr(hdr, output_hdr_filename)
+    cv2.imwrite(output_hdr_filename, hdr)
     print('done')
 
-
-
-
+    print('Saving LDR image .... ', end='')
+    hdr2ldr(hdr, output_hdr_filename)
+    print('done')
